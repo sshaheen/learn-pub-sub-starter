@@ -41,8 +41,12 @@ func main() {
 
 	mqName := strings.Join([]string{routing.ArmyMovesPrefix, input}, ".")
 	routingKey := strings.Join([]string{routing.ArmyMovesPrefix, "*"}, ".")
-	if err := pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, mqName, routingKey, pubsub.SimpleQueueTransient, handlerMove(gs)); err != nil {
+	if err := pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, mqName, routingKey, pubsub.SimpleQueueTransient, handlerMove(ch, gs)); err != nil {
 		log.Fatal("couldn't connect to move queue")
+	}
+
+	if err := pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", pubsub.SimpleQueueDurable, handlerWar(gs)); err != nil {
+		log.Fatal("error with war queue")
 	}
 
 ClientLoop:

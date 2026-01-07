@@ -21,13 +21,16 @@ func DeclareAndBind(
 		return ch, amqp.Queue{}, err
 	}
 
+	tbl := make(amqp.Table)
+	tbl["x-dead-letter-exchange"] = "peril_dlx"
+
 	q, err := ch.QueueDeclare(
 		queueName,
 		queueType == SimpleQueueDurable, // durable
 		queueType != SimpleQueueDurable, // delete when unused
 		queueType != SimpleQueueDurable, // exclusive
 		false,
-		nil,
+		tbl,
 	)
 
 	if err != nil {
