@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,7 +41,8 @@ func main() {
 		log.Fatal("couldn't pause")
 	}
 
-	mqName := strings.Join([]string{routing.ArmyMovesPrefix, input}, ".")
+	usrName := input
+	mqName := strings.Join([]string{routing.ArmyMovesPrefix, usrName}, ".")
 	routingKey := strings.Join([]string{routing.ArmyMovesPrefix, "*"}, ".")
 	if err := pubsub.SubscribeJSON(conn, routing.ExchangePerilTopic, mqName, routingKey, pubsub.SimpleQueueTransient, handlerMove(ch, gs)); err != nil {
 		log.Fatal("couldn't connect to move queue")
@@ -72,7 +74,19 @@ ClientLoop:
 		case "help":
 			gamelogic.PrintClientHelp()
 		case "spam":
-			fmt.Println("Spamming not allowed yet!")
+			if len(input) < 2 {
+				fmt.Println("spam usage: [spam x] where x is a positive integer")
+				continue
+			}
+			n, err := strconv.Atoi(input[1])
+			if err != nil {
+				fmt.Println("error casting num spam msgs")
+				continue
+			}
+			for range n {
+				msg := gamelogic.GetMaliciousLog()
+				pubsub.PublishGob(ch, routing.ExchangePerilTopic, strings.Join([]string{routing.GameLogSlug, usrName}, "."), routing.GameLog{CurrentTime: time.Now(), Message: msg, Username: usrName})
+			}
 		case "quit":
 			gamelogic.PrintQuit()
 			break ClientLoop

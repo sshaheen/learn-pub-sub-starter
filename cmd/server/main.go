@@ -27,7 +27,7 @@ func main() {
 
 	qKey := routing.GameLogSlug + ".*"
 
-	_, _, err = pubsub.DeclareAndBind(conn, routing.ExchangePerilTopic, routing.GameLogSlug, qKey, pubsub.SimpleQueueDurable)
+	err = pubsub.SubscribeGOB(conn, routing.ExchangePerilTopic, routing.GameLogSlug, qKey, pubsub.SimpleQueueDurable, handlerLogs())
 	if err != nil {
 		log.Fatal("error binding to peril_topic")
 	}
